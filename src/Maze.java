@@ -3,6 +3,8 @@
  * A wall k joins the cells w.a()[k] and w.b()[k] and costs w.cost()[k]. Indexes start from 0,
  * the line number in walls.txt is the index + 1. The cells are connected by DisjointSet.
  */
+import java.util.*;
+
 public class Maze {
 
     /**
@@ -10,8 +12,13 @@ public class Maze {
      * Returns the indexes of the broken walls, in the order of breaking.
      */
     public static int[] breakWalls(Input.Walls w) {
-        // TODO
-        return new int[0];
+        DisjointSet dsu = new DisjointSet(w.cells());
+        int[] broken = new int[Math.max(0, w.cells() - 1)];
+        int m = 0;
+        for (int k = 0; k < w.count(); k++) {
+            if (dsu.union(w.a()[k], w.b()[k])) broken[m++] = k;
+        }
+        return Arrays.copyOf(broken, m);
     }
 
     /**
