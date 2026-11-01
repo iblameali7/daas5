@@ -6,6 +6,8 @@
  * of the slides that enter cell v (reversed graph). The lists hold slide numbers i; the cell at the other end is s.to()[i]
  * or s.from()[i].
  */
+import java.util.*;
+
 public class Zones {
 
     /**
@@ -19,8 +21,53 @@ public class Zones {
      * Is DAG in Main is 1 when the number of zones equals the number of cells (no cycle), so you do not need a separate check.
      */
     public static int[] kosaraju(Input.Slides s) {
-        // TODO
-        return new int[s.n()];
+        int n = s.n();
+        int[][] out = Graphs.slidesFrom(s);
+        int[][] in = Graphs.slidesInto(s);
+
+        // Pass 1: DFS on the slides, record cells in the order they are finished.
+        boolean[] seen = new boolean[n];
+        int[] order = new int[n];
+        int finished = 0;
+        int[] stack = new int[n];
+        int[] pos = new int[n];          // pos[u] = how many slides of u were already looked at
+        for (int root = 0; root < n; root++) {
+            if (seen[root]) continue;
+            int top = 0;
+            stack[top++] = root;
+            seen[root] = true;
+            while (top > 0) {
+                int u = stack[top - 1];
+                if (pos[u] < out[u].length) {
+                    int v = s.to()[out[u][pos[u]++]];
+                    if (!seen[v]) { seen[v] = true; stack[top++] = v; }
+                } else {
+                    order[finished++] = u;   // all slides of u are done
+                    top--;
+                }
+            }
+        }
+
+        // Pass 2: from the last finished cell to the first, DFS on the REVERSED slides.
+        int[] zoneOf = new int[n];
+        Arrays.fill(zoneOf, -1);
+        int zones = 0;
+        for (int i = n - 1; i >= 0; i--) {
+            int root = order[i];
+            if (zoneOf[root] != -1) continue;
+            int top = 0;
+            stack[top++] = root;
+            zoneOf[root] = zones;
+            while (top > 0) {
+                int u = stack[--top];
+                for (int idx : in[u]) {
+                    int v = s.from()[idx];
+                    if (zoneOf[v] == -1) { zoneOf[v] = zones; stack[top++] = v; }
+                }
+            }
+            zones++;
+        }
+        return zoneOf;
     }
 
     /**
