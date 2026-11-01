@@ -1,10 +1,6 @@
 /**
  * Mission 3. Escape: DFS from cell 0 to the last cell (rows * cols - 1) in the maze of Mission 1.
- * Two neighbouring cells are connected when the wall between them is broken.
- * The neighbours are tried in this order: up, right, down, left (cell - cols, cell + 1, cell + cols, cell - 1).
- * The ready method Graphs.open(w, broken) gives you the open neighbours of every cell, in no particular order:
- * to visit them in the required order, go through the four cells above one by one and take those that are in the list.
- * The program must not overflow the stack on a maze of 1000 by 1000 cells.
+ * The DFS is iterative (own array as a stack), so a 1000 x 1000 maze cannot overflow the call stack.
  */
 public class Escape {
 
@@ -16,7 +12,46 @@ public class Escape {
     public record Result(int[] path, int visited, int deadEnds) {}
 
     public static Result escape(Input.Walls w, int[] broken) {
-        // TODO
-        return new Result(new int[0], 0, 0);
+        int rows = w.rows(), cols = w.cols(), n = w.cells();
+        int[][] open = Graphs.open(w, broken);
+
+        int deadEnds = 0;
+        for (int[] list : open) if (list.length == 1) deadEnds++;
+
+        int exit = n - 1;
+        boolean[] seen = new boolean[n];
+        int[] next = new int[n];       // next[c] = which direction (0 up, 1 right, 2 down, 3 left) cell c tries next
+        int[] stack = new int[n];      // the current path from the start
+        int top = 0, visited = 0;
+
+        stack[top++] = 0;
+        seen[0] = true;
+        visited = 1;
+        while (top > 0 && stack[top - 1] != exit) {
+            int cell = stack[top - 1];
+            int r = cell / cols, c = cell % cols;
+            boolean moved = false;
+            while (next[cell] < 4 && !moved) {
+                int dir = next[cell]++;
+                int nb = -1;
+                if (dir == 0 && r > 0) nb = cell - cols;
+                else if (dir == 1 && c < cols - 1) nb = cell + 1;
+                else if (dir == 2 && r < rows - 1) nb = cell + cols;
+                else if (dir == 3 && c > 0) nb = cell - 1;
+                if (nb < 0 || seen[nb] || !contains(open[cell], nb)) continue;
+                seen[nb] = true;       // marked at the moment of discovery
+                visited++;
+                stack[top++] = nb;
+                moved = true;
+            }
+            if (!moved) top--;         // all four directions tried: dead end, go back
+        }
+        int[] path = java.util.Arrays.copyOf(stack, top);
+        return new Result(path, visited, deadEnds);
+    }
+
+    private static boolean contains(int[] list, int x) {
+        for (int v : list) if (v == x) return true;
+        return false;
     }
 }
