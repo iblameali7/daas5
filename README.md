@@ -1,8 +1,8 @@
 # Assignment 3. Maze Escape
 
-Student ID: 212521
+Student ID: 252125
 Repository: https://github.com/iblameali7/daas5
-Maze size (rows x columns): 10 x 8 (80 cells, 142 walls)
+Maze size (rows x columns): 8 x 12 (96 cells, 172 walls)
 
 This file is the report. The task is in `docs/Assignment3.pdf`, the setup is in `START_HERE.md`.
 
@@ -10,19 +10,19 @@ This file is the report. The task is in `docs/Assignment3.pdf`, the setup is in 
 
 The 13 lines my program prints on my data (`java -cp out Main`):
 
-    Broken: 79
-    Kept: 63
-    Last broken wall: 131
-    MST cost: 21478
-    Heaviest broken wall: 835
-    Path length: 20
-    DFS visited: 38
-    Dead ends: 26
-    Zones: 80
-    Largest zone: 1
-    Is DAG: 1
-    Flow stages: 18
-    Fastest route cost: 21
+    Broken: 95
+    Kept: 77
+    Last broken wall: 154
+    MST cost: 28602
+    Heaviest broken wall: 748
+    Path length: 28
+    DFS visited: 55
+    Dead ends: 30
+    Zones: 8
+    Largest zone: 20
+    Is DAG: 0
+    Flow stages: 6
+    Fastest route cost: 20
 
 My maze:
 
@@ -38,11 +38,11 @@ My maze:
 
 ### Mission 1. Why Broken is R*C - 1 and Kept is (R-1)*(C-1)
 
-At the start every cell is its own group: R*C groups. A wall is broken only when `union` returns true, and every true `union` makes the number of groups smaller by exactly 1. The maze is connected, so at the end there is one group. Going from R*C groups to 1 takes exactly R*C - 1 successful unions, so Broken = R*C - 1. The number of all inner walls is R*(C-1) + C*(R-1) = 2*R*C - R - C. Kept = (2*R*C - R - C) - (R*C - 1) = R*C - R - C + 1 = (R-1)*(C-1). For my maze: Broken = 80 - 1 = 79, Kept = 63.
+At the start every cell is its own group: R*C groups. A wall is broken only when `union` returns true, and every true `union` makes the number of groups smaller by exactly 1. The maze is connected, so at the end there is one group. Going from R*C groups to 1 takes exactly R*C - 1 successful unions, so Broken = R*C - 1. The number of all inner walls is R*(C-1) + C*(R-1) = 2*R*C - R - C. Kept = (2*R*C - R - C) - (R*C - 1) = R*C - R - C + 1 = (R-1)*(C-1). For my maze: Broken = 96 - 1 = 95, Kept = 77.
 
 ### Mission 2. Cheapest maze
 
-Kruskal gives 21478 and Prim gives 21478. Kruskal sorts the walls by cost and breaks a wall when `union` returns true. Prim starts from cell 0 and grows the maze: it always takes the cheapest wall that leads from the built part to a new cell (priority queue, an old entry for a cell that is already inside is skipped). All wall costs are different, so the cheapest maze (minimum spanning tree) is unique, and both algorithms find the same one, so the costs are equal.
+Kruskal gives 28602 and Prim gives 28602. Kruskal sorts the walls by cost and breaks a wall when `union` returns true. Prim starts from cell 0 and grows the maze: it always takes the cheapest wall that leads from the built part to a new cell (priority queue, an old entry for a cell that is already inside is skipped). All wall costs are different, so the cheapest maze (minimum spanning tree) is unique, and both algorithms find the same one, so the costs are equal.
 
 ### Mission 3. Escape
 
@@ -56,9 +56,9 @@ Kosaraju: the first pass is DFS on the slides, and cells are written down in the
 
 The zones are numbered in the order of the second pass, which is a topological order of the graph of zones: every edge goes from a smaller number to a larger one. So when the pass reaches a zone, all edges into it are already processed, its value is final, and one pass in the order of the numbers is enough. A priority queue is not needed. For every zone I keep the longest chain that ends in it (for Flow stages) and the cheapest cost from the zone of the start (for Fastest route cost); each slide between different zones updates the zone it leads to. Slides inside a zone are skipped, because walking inside a zone is free. The cost of the pass is O(n + m): every cell and every slide is looked at a constant number of times (the slides are grouped by zone with a counting sort, no extra log factor).
 
-## AI assistance
+## AI use
 
-Claude (Anthropic) was used as an assistance tool during development. It helped with parts of the implementation, explanations of the algorithms, Git guidance, and an initial draft of some README content. I reviewed the project and ran the provided checks with `tools/Check.java` as well as tests on my maze data. The benchmark figures below were obtained in a Linux environment using `java -cp out Bench`; they were not measured on my own computer.
+Tool: Claude (Anthropic). Claude wrote the code in `DisjointSet.java`, `Maze.java`, `Escape.java`, `Zones.java` and the extra checks in `DisjointSetTest.java`, and wrote the first version of the answers and the tables in this README. It also explained the algorithms and the git steps to me. The code was tested with `tools/Check.java` and on my own data. The timing numbers below were measured by Claude with `java -cp out Bench` in a Linux environment, not on my own computer. I did not take code from books or websites.
 
 ## Timing
 
